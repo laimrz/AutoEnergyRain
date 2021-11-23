@@ -1,6 +1,6 @@
 package laimr.antforest.autoenergyrain.hook;
 
-import android.app.Activity;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -21,10 +21,8 @@ import laimr.antforest.autoenergyrain.data.GlobalInfo;
  */
 public class XposedHook implements IXposedHookLoadPackage {
 
-
     private boolean isRpcInit = false;
     private boolean isBroadcastInit = false;
-    private boolean isServiceInit = false;
     private ClassLoader gsClassLoader;
     private Object aliPayContext;
     public static Object rpcSenderProxy;
@@ -37,15 +35,44 @@ public class XposedHook implements IXposedHookLoadPackage {
         return (String) XposedHelpers.callMethod(XposedHook.rpcSenderProxy, "executeRPC", new Object[]{api, data, XposedHook.neededHashMap});
     }
 
+    /**
+     *防止重复执行Hook代码
+     * @param flag 判断标识,针对不同Hook代码分别进行判断
+     * @return 是否已经注入Hook代码
+     * @other 暂时没用
+     */
+    //private boolean isInjecter(String flag) {
+    //    try {
+    //        if (TextUtils.isEmpty(flag)) return false;
+    //        Field methodCacheField = XposedHelpers.class.getDeclaredField("methodCache");
+    //        methodCacheField.setAccessible(true);
+    //        HashMap<String, Method> methodCache = (HashMap<String, Method>) methodCacheField.get(null);
+    //        Method method=XposedHelpers.findMethodBestMatch(Application.class,"onCreate");
+    //        String key=String.format("%s#%s",flag,method.getName());
+    //        if (methodCache.containsKey(key)) return true;
+    //        methodCache.put(key, method);
+    //        return false;
+    //    } catch (Throwable e) {
+    //        e.printStackTrace();
+    //    }
+    //    return false;
+    //}
+
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) {
-        XposedHook.intfXposed = this;
-        if (loadPackageParam.packageName.equals("com.eg.android.AlipayGphone")) {
-            Log.e("NMSL", loadPackageParam.packageName + " " + loadPackageParam.processName);
+        //if (isInjecter(this.getClass().getName())) {
+        //    return;
+        //}
+        if (loadPackageParam.packageName.equals(GlobalInfo.hookedPackageName) && loadPackageParam.processName.equals(GlobalInfo.hookedPackageName)) {
+            XposedHook.intfXposed = this;
+            Log.e("NMSL", "handleLoadPackage:"+loadPackageParam.packageName + " " + loadPackageParam.processName);
             gsClassLoader = loadPackageParam.classLoader;
-            launcherActivityResume();
-            launcherSerivice_init();
-
+            if(mLauncherActivity == null){
+                launcherActivityResume();
+            }
+            if(mService == null){
+                launcherSerivice_init();
+            }
         }
 
     }
@@ -64,16 +91,13 @@ public class XposedHook implements IXposedHookLoadPackage {
                 if (!isBroadcastInit) {
                     registerLauncherServiceReceiver();
                 }
-
-                isServiceInit = mService != null;
-
             }
 
             private void registerLauncherServiceReceiver() {
                 isBroadcastInit = true;
+                Log.e("NMSL","注册广播接收器成功");
                 IntentFilter intentFilter = new IntentFilter();
                 intentFilter.addAction(GlobalInfo.BROADCASTTAG+".rpccallfromclient");
-                //intentFilter.addAction("com.alipays.laimr.getcurrentid");
                 mService.registerReceiver(new launcherServiceBroadcastReciever(), intentFilter);
             }
         });
@@ -88,8 +112,8 @@ public class XposedHook implements IXposedHookLoadPackage {
                 //super.afterHookedMethod(param);
                 if (aliPayContext == null) {
                     Class<?> alipayApplicationClazz = XposedHelpers.findClass("com.alipay.mobile.framework.AlipayApplication", gsClassLoader);
-                    Object alipayApplication = XposedHelpers.callStaticMethod(alipayApplicationClazz, "getInstance", new Object[0]);
-                    aliPayContext = XposedHelpers.callMethod(alipayApplication, "getMicroApplicationContext", new Object[0]);
+                    Object alipayApplication = XposedHelpers.callStaticMethod(alipayApplicationClazz, "getInstance");
+                    aliPayContext = XposedHelpers.callMethod(alipayApplication, "getMicroApplicationContext");
                 }
                 if (!isRpcInit) {
                     rpcCall_init();
@@ -97,25 +121,22 @@ public class XposedHook implements IXposedHookLoadPackage {
                 }
                 getCurrentUserId();
 
-
             }
         });
     }
 
 
     private void rpcCall_init() {
-        Object rpcServiceImpl = XposedHelpers.callMethod(aliPayContext, "findServiceByInterface", new Object[]{"com.alipay.mobile.framework.service.common.RpcService"});
+        Object rpcServiceImpl = XposedHelpers.callMethod(aliPayContext, "findServiceByInterface", "com.alipay.mobile.framework.service.common.RpcService");
         if (rpcServiceImpl == null) {
             Log.e("NMSL", "出问题1");
         }
         try {
             Class simpleRpcService = this.gsClassLoader.loadClass("com.alipay.mobile.framework.service.ext.SimpleRpcService");
-            Object proxy = XposedHelpers.callMethod(
+            rpcSenderProxy = XposedHelpers.callMethod(
                     rpcServiceImpl,
                     "getRpcProxy",
-                    new Object[]{simpleRpcService}
-            );
-            rpcSenderProxy = proxy;
+                    simpleRpcService);
             if (rpcServiceImpl != null) {
                 isRpcInit = true;
             }
@@ -132,7 +153,7 @@ public class XposedHook implements IXposedHookLoadPackage {
         try {
             //Class<?> socialSdkContactServiceClazz = XposedHelpers.findClass("com.alipay.mobile.personalbase.service.SocialSdkContactService", gsClassLoader);
             Object socialSdkContactServiceImpl = XposedHelpers.callMethod(aliPayContext, "findServiceByInterface", "com.alipay.mobile.personalbase.service.SocialSdkContactService");
-            Object myAccountInfoModel = XposedHelpers.callMethod(socialSdkContactServiceImpl, "getMyAccountInfoModelByLocal", new Object[0]);
+            Object myAccountInfoModel = XposedHelpers.callMethod(socialSdkContactServiceImpl, "getMyAccountInfoModelByLocal");
             if (!(((String) XposedHelpers.getObjectField(myAccountInfoModel, "userId")).equals(GlobalInfo.userId))) {
                 GlobalInfo.userId = (String) XposedHelpers.getObjectField(myAccountInfoModel, "userId");
                 GlobalInfo.loginId = (String) XposedHelpers.getObjectField(myAccountInfoModel, "loginId");

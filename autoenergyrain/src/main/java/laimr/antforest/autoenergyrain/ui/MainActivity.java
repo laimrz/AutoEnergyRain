@@ -3,12 +3,15 @@ package laimr.antforest.autoenergyrain.ui;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import java.util.List;
 
 import laimr.antforest.autoenergyrain.R;
 import laimr.antforest.autoenergyrain.data.GlobalInfo;
@@ -32,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
         ((Button) this.findViewById(R.id.getUserId)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //sendBroadcast(new Intent("com.alipay.laimr.rpccallfromclient").putExtras(createBundle("getCurrentId")));
                 sendBroadcast(createIntentWithBundle("getCurrentId", "", ""));
             }
         });
@@ -40,16 +42,6 @@ public class MainActivity extends AppCompatActivity {
         ((Button) this.findViewById(R.id.grantOtherEnergyRain)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                //MainActivity.this.sendBroadcast(
-                //        new Intent("com.alipay.laimr.rpccallfromclient")
-                //                .putExtras(
-                //                        createBundle("grantEnergyRain",
-                //                                "alipay.antforest.forest.h5.grantEnergyRainChance",
-                //                                "[{\"targetUserId\":" + ((EditText) findViewById(R.id.grantedUserid)).getText() + "}]"
-                //                        )
-                //                )
-                //);
                 MainActivity.this.sendBroadcast(createIntentWithBundle(
                         "grantEnergyRain",
                         "alipay.antforest.forest.h5.grantEnergyRainChance",
@@ -68,11 +60,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private Bundle createBundle(String goal) {
-        Bundle bundle = new Bundle();
-        bundle.putString("goal", goal);
-        return bundle;
-    }
 
     private Intent createIntentWithBundle(String goal, String api, String data) {
         Bundle bundle = new Bundle();
