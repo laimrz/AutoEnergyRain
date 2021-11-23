@@ -40,7 +40,7 @@ public class XposedHook implements IXposedHookLoadPackage {
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) {
         XposedHook.intfXposed = this;
-        if (loadPackageParam.packageName.equals("com.eg.android.AlipayGphones")) {
+        if (loadPackageParam.packageName.equals("com.eg.android.AlipayGphone")) {
             Log.e("NMSL", loadPackageParam.packageName + " " + loadPackageParam.processName);
             gsClassLoader = loadPackageParam.classLoader;
             launcherActivityResume();

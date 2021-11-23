@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AutoEnergyRain.iml" filepath="$PROJECT_DIR$/.idea/modules/AutoEnergyRain.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/autoenergyrain/AutoEnergyRain.autoenergyrain.iml" filepath="$PROJECT_DIR$/.idea/modules/autoenergyrain/AutoEnergyRain.autoenergyrain.iml" />
-    </modules>
-  </component>
-</project>
