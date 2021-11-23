@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">能量雨助手_0.91</string>
+    <string name="notice">能量雨助手，用来解决Crystal系列软件能量雨暂时失效问题</string>
+    <string name="func1">功能①：给好友赠送能量雨，填写被赠送好友的userid,例如：208882274326****</string>
+    <string name="func2">功能②：收取当前账号的能量雨，目前最多3次，每日系统赠送+1次+被赠送+1次，赠送别人+1次</string>
+</resources>
